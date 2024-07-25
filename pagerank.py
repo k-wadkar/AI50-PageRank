@@ -88,6 +88,7 @@ def transition_model(corpus, page, damping_factor):
 
     return probabilityDistribution
 
+
 def sample_pagerank(corpus, damping_factor, n):
     """
     Return PageRank values for each page by sampling `n` pages
@@ -131,7 +132,8 @@ def sample_pagerank(corpus, damping_factor, n):
         prevSample = deepcopy(newSample)
 
     # Return a dictionary containing each page against its frequency in the sample (i.e. its PageRank)
-    return {i:(sample.count(i)/n) for i in set(sample)}
+    return {i: (sample.count(i)/n) for i in set(sample)}
+
 
 def iterate_pagerank(corpus, damping_factor):
     """
@@ -142,7 +144,33 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    # Contains the initial probability distribution of each page (uniform), equal to 1/number of pages 
+    probabilityDistribution = {key: 1/len(corpus) for key in corpus}
+    
+    # If there is a page which does not have any outward links, give it an outward link to every other page in corpus
+    for key in corpus:
+        if corpus[key] == set():
+            corpus[key] = {key for key in corpus}
+
+    priorDistribution = {}
+    while probabilityDistribution != priorDistribution:
+        priorDistribution = deepcopy(probabilityDistribution)
+        for page in corpus:
+            pagesWithInwardLinks = []
+            for nestedPage in corpus:
+                if page in corpus[nestedPage]:
+                    pagesWithInwardLinks.append(nestedPage)
+            
+            # Summation abstraction
+            sum = 0
+            for subPage in pagesWithInwardLinks:
+                sum += (probabilityDistribution[subPage]/len(corpus[subPage]))
+
+            # List now contains the names of all pages which point to the selected page
+            probabilityDistribution[page] = round(
+                ((1-damping_factor)/len(corpus))+(damping_factor*sum), 5)
+              
+    return probabilityDistribution    
 
 
 if __name__ == "__main__":
