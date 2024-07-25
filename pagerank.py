@@ -58,18 +58,32 @@ def transition_model(corpus, page, damping_factor):
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
     """
-    probabilityDistribution = {}
-    baseProbability = (1/len(corpus)) * (1-damping_factor)
-    # print(type(page))
+    # Contains the set of all pages which the input page links to
     linkedPages = corpus[page]
+
+    # Base probability of any page being the next page assumes the uniform distribution
+    baseProbability = (1/len(corpus))
+        
+    # If the input page does link to other pages...
     if len(linkedPages) != 0:
+        # Account for the damping factor in the base probability
+        baseProbability *= (1-damping_factor)
+        # Additional probability assumes uniform distribution for linked pages, then accounts for damping factor
         additionalProbability = (1/len(linkedPages)) * damping_factor
+    # Otherwise if the input page does not link to other pages
     else:
+        # ...then the additional probability must be zero 
         additionalProbability = 0
 
+    # Empty dictionary to contain page name against the probability of that page being selected next
+    probabilityDistribution = {}
+
+    # For each possible page that could be added to the sample next
     for pages in corpus:
+        # Create key-pair entry of page name against base probability
         probabilityDistribution[pages] = baseProbability
         if pages in linkedPages:
+            # Add additional probability to base probability if the page happens to be linked by the original page
             probabilityDistribution[pages] += additionalProbability        
 
     return probabilityDistribution
