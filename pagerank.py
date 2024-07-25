@@ -60,6 +60,7 @@ def transition_model(corpus, page, damping_factor):
     """
     probabilityDistribution = {}
     baseProbability = (1/len(corpus)) * (1-damping_factor)
+    # print(type(page))
     linkedPages = corpus[page]
     if len(linkedPages) != 0:
         additionalProbability = (1/len(linkedPages)) * damping_factor
@@ -82,8 +83,41 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    # Creates a list containing the name of every page in corpus
+    allPages = [page for page in corpus]
+    
+    # The first sample is selected randomly from the list
+    firstSample = random.choice(allPages)
 
+    # List to contain all samples collected (1 -> n samples)
+    sample = [deepcopy(firstSample)]
+    
+    # Previous sample set equal to the first sample
+    prevSample = firstSample
+
+    # samples variable used as a 'scapegoat' variable to allow us to collect n samples in total
+    for samples in range(1, n):
+        # Probability distribution for all possible future samples given the previous sample 
+        prevDistribution = transition_model(corpus, prevSample, damping_factor)
+
+        # List containing names of all possible future samples given by prevDistribution
+        # (Can't use allPages as was before, since order probably won't be the same as we require it to be which matters later on)
+        allPages = [page for page in prevDistribution]
+        # List containing the probability for each page being the next sample, in order of appearance in allPages
+        probabilities = [prevDistribution[page] for page in prevDistribution]
+
+        # Generates a new sample based on the probability weights
+        # (the [0] is there because random.choices returns a list with len 1, rather than just a string)
+        newSample = random.choices(allPages, probabilities)[0]
+
+        # Appends the new sample to the overall sample list
+        sample.append(deepcopy(newSample))
+
+        # PrevSample updated before the next loop
+        prevSample = deepcopy(newSample)
+
+    # Return a dictionary containing each page against its frequency in the sample (i.e. its PageRank)
+    return {i:(sample.count(i)/n) for i in set(sample)}
 
 def iterate_pagerank(corpus, damping_factor):
     """
