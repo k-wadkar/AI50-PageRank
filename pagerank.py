@@ -58,36 +58,20 @@ def transition_model(corpus, page, damping_factor):
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
     """
-    # Generates a random decimal between 0 and 1
-    randNum = random.uniform(0, 1)
-
-    # If the random decimal is below the damping factor (i.e. <= 0.85)
-    if randNum <= damping_factor:
-        # validPages equal to the set of webpages to which the input page links to
-        validPages = deepcopy(corpus[page])
-        # Empty dictionary to contain the probability distribution
-        newDict = {}
-
-        # For each page that the original page links to
-        for pages in validPages:
-            # Add the page to newdict and set its probability according to the uniform distribution
-            newDict[pages] = 1/len(validPages)
-        
-        # Return the probability distribution
-        return newDict
-    
-    # Otherwise if the random decimal is above the damping factor (i.e. > 0.85)
+    probabilityDistribution = {}
+    baseProbability = (1/len(corpus)) * (1-damping_factor)
+    linkedPages = corpus[page]
+    if len(linkedPages) != 0:
+        additionalProbability = (1/len(linkedPages)) * damping_factor
     else:
-        # New dictionary to contain the probability distribution
-        newDict = {}
-        for pages in corpus:
-            # Set probability as per the uniform distribution
-            newDict[pages] = 1/len(corpus)
+        additionalProbability = 0
 
-        # Return the probability distribution
-        return corpus
-        
+    for pages in corpus:
+        probabilityDistribution[pages] = baseProbability
+        if pages in linkedPages:
+            probabilityDistribution[pages] += additionalProbability        
 
+    return probabilityDistribution
 
 def sample_pagerank(corpus, damping_factor, n):
     """
